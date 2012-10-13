@@ -3,6 +3,15 @@ require File.dirname(__FILE__) + '/authorization.rb'
 
 module Authorization
   module AuthorizationInController
+
+    @@default_role = :guest
+    def self.default_role
+      @@default_role
+    end
+
+    def self.default_role= (role)
+     @@default_role = role.to_sym
+    end
   
     def self.included(base) # :nodoc:
       base.extend(ClassMethods)
@@ -62,7 +71,7 @@ module Authorization
     # with authorization.  E.g. to only show the most relevant menu options 
     # to a certain group of users.  That is what has_role? should be used for.
     def has_role? (*roles, &block)
-      user_roles = authorization_engine.roles_for(current_user)
+      user_roles = authorization_engine.roles_for(send(Authorization.current_user_accessor))
       result = roles.all? do |role|
         user_roles.include?(role)
       end
@@ -73,7 +82,7 @@ module Authorization
     # Intended to be used where you want to allow users with any single listed role to view 
     # the content in question
     def has_any_role?(*roles,&block)
-      user_roles = authorization_engine.roles_for(current_user)
+      user_roles = authorization_engine.roles_for(send(Authorization.current_user_accessor))
       result = roles.any? do |role|
         user_roles.include?(role)
       end
@@ -83,7 +92,7 @@ module Authorization
     
     # As has_role? except checks all roles included in the role hierarchy
     def has_role_with_hierarchy?(*roles, &block)
-      user_roles = authorization_engine.roles_with_hierarchy_for(current_user)
+      user_roles = authorization_engine.roles_with_hierarchy_for(send(Authorization.current_user_accessor))
       result = roles.all? do |role|
         user_roles.include?(role)
       end
@@ -93,7 +102,7 @@ module Authorization
     
     # As has_any_role? except checks all roles included in the role hierarchy
     def has_any_role_with_hierarchy?(*roles, &block)
-      user_roles = authorization_engine.roles_with_hierarchy_for(current_user)
+      user_roles = authorization_engine.roles_with_hierarchy_for(send(Authorization.current_user_accessor))
       result = roles.any? do |role|
         user_roles.include?(role)
       end
@@ -176,7 +185,7 @@ module Authorization
         object = object_or_sym
       end
 
-      {:user => current_user,
+      {:user => send(Authorization.current_user_accessor),
         :object => object,
         :context => context,
         :skip_attribute_test => object.nil?,
@@ -617,7 +626,7 @@ module Authorization
       privilege = @privilege || :"#{contr.action_name}"
 
       contr.authorization_engine.permit!(privilege, 
-                                         :user => contr.send(:current_user),
+                                         :user => contr.send(Authorization.current_user_accessor),
                                          :object => object,
                                          :skip_attribute_test => !@attribute_check,
                                          :context => @context || contr.class.decl_auth_context)

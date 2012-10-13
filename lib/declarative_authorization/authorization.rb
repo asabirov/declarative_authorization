@@ -61,6 +61,15 @@ module Authorization
     @@default_role = role.to_sym
   end
 
+  @@current_user_accessor = :current_user
+  def self.current_user_accessor
+    @@current_user_accessor
+  end
+
+  def self.current_user_accessor= (v)
+    @@current_user_accessor = v.to_sym
+  end
+
   def self.is_a_association_proxy? (object)
     if Rails.version < "3.2"
       object.respond_to?(:proxy_reflection)
