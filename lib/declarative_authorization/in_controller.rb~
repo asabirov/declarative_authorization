@@ -185,11 +185,16 @@ module Authorization
         object = object_or_sym
       end
 
+<<<<<<< HEAD
       result = {:object => object,
+=======
+      {:user => send(Authorization.current_user_accessor),
+        :object => object,
+>>>>>>> Added Authorization.current_user_accessor as custom devise current_user helper
         :context => context,
         :skip_attribute_test => object.nil?,
         :bang => bang}.merge(options)
-      result[:user] = send(Authorization.current_user_accessor) unless result.key?(:user)
+      result[:user] = current_user unless result.key?(:user)
       result
     end
 
